@@ -4,7 +4,11 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +43,7 @@ public class GreetingController {
 	}
 	
 	@GetMapping("/test")
-	public String sayHello() throws SQLException {
+	public String sayHello() throws SQLException, ParseException {
 		
 		gatherData();
 		
@@ -74,7 +78,7 @@ public class GreetingController {
 	}
 	
 	
-	private void gatherData() throws SQLException
+	private void gatherData() throws SQLException, ParseException
 	{
 		myConn = DBConnection.dbConnector();
 		
@@ -98,12 +102,49 @@ public class GreetingController {
 			String montageDate = r.getString("MontageDate");		
 			String shipmentdate = r.getString("ShipmentDate");		
 
+			status = statusAnalize(shipmentdate);
+			
 			DataObject obj  = new DataObject(status, machine, montageDate, shipmentdate);
 			
 			dataObjects.add(obj);
 		}	
 		
 		
+	}
+	
+	
+	
+	public String statusAnalize(String shipmentdate) throws ParseException {
+		
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+
+		
+		if(shipmentdate.length() >8 )
+		{
+			String dateinfuture  =shipmentdate;
+			Date dateinfuture_date = formatter.parse(dateinfuture);
+			
+			
+			Date date = new Date();
+	
+			if(date.after(dateinfuture_date))
+			{
+				return "ON TIME";
+			}
+			else if(dateinfuture_date.after(date))
+			{
+				return "DELAYED";
+			}
+			else
+			{
+				return "ON TIME";
+			}
+		}
+		else
+		{
+			return "ON TIME";
+		}
+
 	}
 	
 	
